@@ -62,4 +62,8 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - aeson
     - legio-decima
+    - QuickCheck
+    - quickcheck-classes
+
