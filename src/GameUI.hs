@@ -1,9 +1,11 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE RecordWildCards #-}
 module GameUI
     ( gameUI
     ) where
 
+import Data.Aeson
 import Brick
 import Brick.Widgets.Center                                                                                                                                               
 import Brick.Widgets.Border                                                                                                                                               
@@ -12,37 +14,43 @@ import Linear.V2
 import Graphics.Vty.Input.Events ( Event(EvResize) )
 import Graphics.Vty.Attributes
 import Graphics.Vty.Image
+import GHC.Generics(Generic)
 
-class Initial a where
-    initial :: a
+import Initial
 
 -- | Game world
 data World = World {
     -- player :: Entity ()
     worldTime :: Int
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic)
 
-instance Initial World where
-    initial = World 0
+instance FromJSON World where
+  parseJSON  = initially $ World 0
+instance ToJSON World
+instance Initial World
 
 -- | Identifier of UI widget
 data WidgetName = Main
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Generic)
 
 data Settings = Settings
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
 
-instance Initial Settings where
-    initial = Settings
+instance FromJSON Settings where
+  parseJSON = initially Settings
+instance ToJSON Settings
+instance Initial Settings
 
 -- | State of the game application
 data Game = Game {
       world    :: World
     , settings :: Settings
-    } deriving (Eq, Show)
+    } deriving (Eq, Show, Generic)
 
-instance Initial Game where
-    initial = Game initial initial
+instance FromJSON Game where
+  parseJSON = initially $ Game initial initial
+instance ToJSON Game
+instance Initial Game
 
 -- | Application specific event
 data GameEvt = GameEvt
@@ -53,8 +61,11 @@ type MyApp = App Game GameEvt WidgetName
 
 gameUI :: IO ()
 gameUI = do
+    let gameFile = "game.save"
+    initialGame <- restore gameFile
     -- TODO: autoload last game here
-    finalGame <- defaultMain myApp (initial :: Game)
+    finalGame <- defaultMain myApp initialGame
+    encodeFile gameFile finalGame
     -- TODO: autosave game here
     return ()
   where

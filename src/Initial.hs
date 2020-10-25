@@ -14,6 +14,8 @@ module Initial where
 --   are initialized from a list of _all optional_ Aeson.Values.
 --   Initialization should be fully generic by default.
 
+import Control.Applicative((<|>))
+import Data.Aeson.Types
 import Data.Aeson
     ( decodeFileStrict
     , fromJSON
@@ -23,17 +25,23 @@ import Data.Aeson
     , Value(Null) )
 import           Data.Maybe(fromMaybe, fromJust, isJust)
 import Data.Proxy
-
+import GHC.Generics ( Generic(Rep) )
 
 -- | Special class for values that should give initial value when JSON parse fails.
-class FromJSON a
-   => Initial  a where
-  -- | Initial value
-  initial :: a
-  initial  = case fromJSON Null of
-               Error err -> error "Failed to initialize from empty JSON!"
-               Success a -> a
+class (FromJSON a
+      ,ToJSON   a)
+   =>  Initial  a
 
+-- | Initial value
+initial :: Initial a => a
+initial  = case fromJSON Null of
+  Error err -> error "Failed to initialize from empty JSON!"
+  Success a -> a
+
+-- | Implements FromJSON with a fixed initialization.
+--initializeWith :: (Generic a, GFromJSON Zero (Rep a)) => a -> Value -> Parser a
+initially :: (Generic a, GFromJSON Zero (Rep a)) => a -> Value -> Parser a
+initially x v = genericParseJSON defaultOptions v <|> pure x
 
 -- | Reload old value from file, or initialize it from scratch if file is not present.
 restore :: FromJSON a => FilePath -> IO a
