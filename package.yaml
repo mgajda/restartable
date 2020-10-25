@@ -1,0 +1,58 @@
+name:                legio-decima
+version:             0.1.0.0
+github:              "mjgajda/legio-decima"
+license:             BSD3
+author:              "Michał J. Gajda"
+maintainer:          "mjgajda@migamake.com"
+copyright:           "AllRightsReserved"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Data
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/mjgajda/legio-decima#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+  dependencies:
+  - vty
+  - brick
+  - lens
+  - optics
+  - mtl
+  - linear
+
+executables:
+  legio-decima-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - legio-decima
+    - vty
+    - brick
+
+
+tests:
+  legio-decima-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - legio-decima

@@ -1,0 +1,71 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 4064ea7fba609ea0060703a9e660d3db32466eb12ac0bf0a82ce02c7dbfbc372
+
+name:           legio-decima
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/mjgajda/legio-decima#readme>
+homepage:       https://github.com/mjgajda/legio-decima#readme
+bug-reports:    https://github.com/mjgajda/legio-decima/issues
+author:         Michał J. Gajda
+maintainer:     mjgajda@migamake.com
+copyright:      AllRightsReserved
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/mjgajda/legio-decima
+
+library
+  exposed-modules:
+      Entity
+      GameUI
+  other-modules:
+      Paths_legio_decima
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+    , brick
+    , lens
+    , linear
+    , mtl
+    , optics
+    , vty
+  default-language: Haskell2010
+
+executable legio-decima-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_legio_decima
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , brick
+    , legio-decima
+    , vty
+  default-language: Haskell2010
+
+test-suite legio-decima-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_legio_decima
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , legio-decima
+  default-language: Haskell2010
