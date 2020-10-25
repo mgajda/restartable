@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4064ea7fba609ea0060703a9e660d3db32466eb12ac0bf0a82ce02c7dbfbc372
+-- hash: 232b993b369cf2abdca713d63719d613a3c8a3757877f40c12065ee14ac08052
 
 name:           legio-decima
 version:        0.1.0.0
@@ -29,17 +29,25 @@ library
   exposed-modules:
       Entity
       GameUI
+      Initialized
   other-modules:
       Paths_legio_decima
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , brick
+    , bson
+    , bytestring
     , lens
     , linear
     , mtl
     , optics
+    , scientific
+    , text
+    , unordered-containers
+    , vector
     , vty
   default-language: Haskell2010
 

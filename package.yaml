@@ -27,10 +27,17 @@ library:
   dependencies:
   - vty
   - brick
-  - lens
-  - optics
+  - lens # unused
+  - optics # unused?
   - mtl
   - linear
+  - bson # unused?
+  - aeson
+  - scientific
+  - text
+  - vector
+  - bytestring
+  - unordered-containers
 
 executables:
   legio-decima-exe:
