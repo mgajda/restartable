@@ -39,7 +39,7 @@ library:
   - unix
 
 executables:
-  legio-decima-exe:
+  legio-decima:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -49,7 +49,6 @@ executables:
     dependencies:
     - legio-decima
     - vty
-    - brick
 
 
 tests:

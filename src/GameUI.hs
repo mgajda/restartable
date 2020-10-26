@@ -87,10 +87,28 @@ data UIAction state =
   | UITerminate Ending
 
 viewModel :: Vty -> DisplayRegion -> Game -> IO ()
-viewModel vty (w, h) model = do
-    let line0 = string (defAttr ` withForeColor ` green)
-              $ show $ view (world % worldTime) model
-        line1 = string (defAttr ` withBackColor ` blue) "second line"
-        img = line0 <-> line1
-        pic = picForImage img
+viewModel vty displaySize model = do
+    let worldView   = string (defAttr ` withForeColor ` green)
+                    $ show $ view (world % worldTime)    model
+        messageView = string (defAttr ` withBackColor ` blue)
+                    $ hfill displaySize $ view (world % worldMessage) model
+        pic = picForLayers [bottom displaySize messageView, center displaySize worldView]
     update vty pic
+
+-- | Center the Vty.Image by translation
+center :: DisplayRegion -> Image -> Image
+center (w,h) img = translate xoff yoff img
+  where
+    xoff = (w-imageWidth  img) `div` 2
+    yoff = (h-imageHeight img) `div` 2
+
+-- | Put the Vty.Image at the bottom by translation
+bottom :: DisplayRegion -> Image -> Image
+bottom (w, h) img = translate 0 yoff img
+  where
+    yoff = h-imageHeight img
+
+-- | Fill the displayed string with spaces.
+hfill :: DisplayRegion -> String -> String
+hfill (w, h) str = str <> replicate (w - safeWcswidth str) ' '
+
