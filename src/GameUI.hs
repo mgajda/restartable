@@ -2,17 +2,12 @@
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
-module GameUI
-    ( gameUI
-    ) where
+module GameUI where
 
 import Data.Aeson
-import Brick
-import Brick.Widgets.Center                                                                                                                                               
-import Brick.Widgets.Border                                                                                                                                               
-import Brick.Widgets.Border.Style     
 import Control.Monad(when)
-import Linear.V2
+import Graphics.Vty
+import Graphics.Vty.Image(DisplayRegion)
 import Graphics.Vty.Input.Events ( Event(..), Key(..) )
 import Graphics.Vty.Attributes
 import Graphics.Vty.Image
@@ -23,7 +18,6 @@ import Optics.TH
 import System.Posix.Process(executeFile)
 import System.Environment(getArgs, getProgName)
 import Control.Monad.Reader
-import Brick
 import Checkpoint
 
 import Initial
@@ -43,8 +37,8 @@ instance Initial Settings
 
 -- | State of the game application
 data Game = Game {
-      _world    :: World
-    , _settings :: Settings
+      _world         :: World
+    , _settings      :: Settings
     } deriving (Eq, Show, Generic)
 makeLenses ''Game
 
@@ -53,63 +47,50 @@ instance FromJSON Game where
 instance ToJSON Game
 instance Initial Game
 
-data Session = Session {
-    _game   :: Game
-  , _ending :: Ending
-  } deriving (Eq, Show, Generic)
-makeLenses ''Session
-
--- | Application specific event
-data GameEvt = GameEvt
-  deriving (Eq, Ord, Show)
-
--- | My application state 
-type MyApp = App Game GameEvt WidgetName
-
 keyToAction (KChar ' ') [] = Wait
 keyToAction (KChar 'y') [] = Yell
 keyToAction _           _  = Idle
 
-gameUI :: Game -> IO (Game, Ending)
-gameUI initialGame = do
-    Session finalGame ending <- defaultMain myApp $ Session initialGame Quit
-    return (finalGame, ending)
-  where
-    myApp = App {
-            appDraw
-        ,   appChooseCursor
-        ,   appHandleEvent
-        ,   appAttrMap
-        ,   appStartEvent
-        }
-    appHandleEvent  :: Session -> BrickEvent WidgetName GameEvt -> EventM WidgetName (Next Session)
-    appHandleEvent s (VtyEvent (EvResize _ _            )) = continue s
-    appHandleEvent s (VtyEvent (EvKey   (KChar 'q') []  )) = halt s -- quit
-    appHandleEvent s (VtyEvent (EvKey   (KChar 'r') []  )) = halt $ set ending Restart s -- reload, which quits for now
-    appHandleEvent s (VtyEvent (EvKey   keyName     mods)) = continue
-                                                           $ over (game % world)
-                                                            (updateWorld $ keyToAction keyName mods)
-                                                             s
-    appHandleEvent s (VtyEvent (EvPaste _               )) = continue $ set (game % world % worldMessage) "This game does not allow pasting" s
-    appHandleEvent s _                                     = continue s
-    
-    nextTick = over (game % world % worldTime) (+1) 
 
-    appDraw :: Session -> [Widget WidgetName]
-    appDraw session = [mainWidget <=> messageWidget]
-      where
-        mainWidget = withBorderStyle unicode 
-                   $ joinBorders
-                   $ borderWithLabel (str "Map")
-                   $ center $ str $ show $ view (game % world % worldTime) session
-        messageWidget = withBorderStyle unicode
-                      $ joinBorders
-                      $ vLimit 3
-                      $ borderWithLabel (str "Message")
-                      $ str $ view (game % world % worldMessage) session
-        
-    appChooseCursor _ []    = Nothing
-    appChooseCursor _ (c:_) = Just c
+-- | Start VTY UI over the game.
+vtyUI :: Game -> IO (Game, Ending)
+vtyUI initialState = do
+    cfg         <- standardIOConfig
+    vty         <- mkVty cfg
+    displaySize <- displayBounds $ outputIface vty
+    (finalState, ending) <- vtyLoop vty displaySize initialState
+    shutdown vty
+    return (finalState, ending)
 
-    appAttrMap _ = attrMap defAttr []
-    appStartEvent = return
+vtyLoop :: Vty -> DisplayRegion -> Game -> IO (Game, Ending)
+vtyLoop vty displaySize state = do
+    viewModel vty displaySize state
+    e        <- nextEvent vty
+    uiAction <- eventUpdate state e
+    case uiAction of
+      UITerminate ending   -> return                   (state, ending)
+      UIContinue  newState -> vtyLoop vty  displaySize  newState
+      UIResize    newSize  -> vtyLoop vty  newSize      state
+  
+eventUpdate :: Monad m => Game -> Event -> m (UIAction Game)
+eventUpdate st (EvResize w h        ) = return $ UIResize    (w, h)
+eventUpdate st (EvKey  (KChar 'q') _) = return $ UITerminate Quit
+eventUpdate st (EvKey  (KChar 'r') _) = return $ UITerminate Restart
+eventUpdate st (EvKey   keyName mods) = return $ UIContinue
+                                      $ over  world
+                                             (updateWorld $ keyToAction keyName mods) st
+eventUpdate st  _                     = return $ UIContinue          st -- ignore paste!
+
+data UIAction state =
+    UIContinue  state
+  | UIResize    DisplayRegion
+  | UITerminate Ending
+
+viewModel :: Vty -> DisplayRegion -> Game -> IO ()
+viewModel vty (w, h) model = do
+    let line0 = string (defAttr ` withForeColor ` green)
+              $ show $ view (world % worldTime) model
+        line1 = string (defAttr ` withBackColor ` blue) "second line"
+        img = line0 <-> line1
+        pic = picForImage img
+    update vty pic
