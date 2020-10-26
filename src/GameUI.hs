@@ -24,15 +24,10 @@ import System.Posix.Process(executeFile)
 import System.Environment(getArgs, getProgName)
 import Control.Monad.Reader
 import Brick
+import Checkpoint
 
 import Initial
 import World
-
--- | Restart current executable.
-restart = do
-  args    <- getArgs
-  exeName <- getProgName
-  executeFile exeName True args Nothing
 
 -- | Identifier of UI widget
 data WidgetName = Main
@@ -45,16 +40,6 @@ instance FromJSON Settings where
   parseJSON = initially Settings
 instance ToJSON Settings
 instance Initial Settings
-
--- | Way in which game terminated.
-data Ending = Quit
-            | Restart
-  deriving (Eq, Ord, Show, Generic)
-
-instance FromJSON Ending where
-  parseJSON = initially Quit
-instance ToJSON Ending
-instance Initial Ending
 
 -- | State of the game application
 data Game = Game {
@@ -86,13 +71,9 @@ keyToAction (KChar 'y') [] = Yell
 keyToAction _           _  = Idle
 
 gameUI :: IO ()
-gameUI = do
-    let gameFile = "game.save"
-    initialGame <- restore gameFile
-    finalSession <- defaultMain myApp $ Session initialGame Quit
-    encodeFile gameFile $ view game finalSession
-    when (view ending finalSession == Restart) restart
-    return ()
+gameUI = restartable "game.save" $ \initialGame -> do
+    Session finalGame ending <- defaultMain myApp $ Session initialGame Quit
+    return (finalGame, ending)
   where
     myApp = App {
             appDraw
@@ -109,6 +90,7 @@ gameUI = do
                                                            $ over (game % world)
                                                             (updateWorld $ keyToAction keyName mods)
                                                              s
+    appHandleEvent s (VtyEvent (EvPaste _               )) = continue $ set (game % world % worldMessage) "This game does not allow pasting" s
     appHandleEvent s _                                     = continue s
     
     nextTick = over (game % world % worldTime) (+1) 

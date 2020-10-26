@@ -17,7 +17,6 @@ module Test.Initial where
 import Data.Aeson
 import Data.Aeson.Types
 import Data.Proxy
-
 import Initial
 
 -- * Tests for Initial class:

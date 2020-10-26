@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f647b685a5c916b94887984fc94a173fae4dd30ae6e3b6224bf73877af3fa53d
+-- hash: 26356240c4315f1f60106b694ab779f58e1cbe43daf6d0ae9ef851870279fb57
 
 name:           legio-decima
 version:        0.1.0.0
@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      Checkpoint
       Entity
       GameUI
       Initial
