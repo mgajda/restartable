@@ -1,13 +1,9 @@
-{-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE DeriveGeneric   #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TemplateHaskell #-}
 -- | Make a checkpointable session
 --   provided that session state implements `Initial`.
 module Checkpoint(restartable, Ending(..)) where
 
 import Data.Aeson
-import Control.Monad(when)
 import GHC.Generics(Generic)
 import System.Posix.Process(executeFile)
 import System.Environment(getArgs, getProgName)

@@ -1,9 +1,6 @@
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveGeneric         #-}
-{-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -23,9 +20,7 @@ import Data.Aeson
     , FromJSON
     , Result(Success, Error)
     , Value(Null) )
-import           Data.Maybe(fromMaybe, fromJust, isJust)
 import GHC.Generics ( Generic(Rep) )
-import System.IO.Error
 
 -- | Special class for values that should give initial value when JSON parse fails.
 class (FromJSON a

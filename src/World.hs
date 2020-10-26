@@ -12,7 +12,6 @@ module World( World
             ) where
 
 import Data.Aeson
-import Control.Monad(when)
 import Graphics.Vty.Input.Events ( Event(..), Key(..) )
 import Graphics.Vty.Attributes
 import Graphics.Vty.Image
