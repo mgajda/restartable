@@ -1,4 +1,4 @@
 import GameUI
 
 main :: IO ()
-main = GameUI.gameUI
+main = putStrLn "Not implemented yet..."

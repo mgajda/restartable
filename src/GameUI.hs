@@ -70,8 +70,8 @@ keyToAction (KChar ' ') [] = Wait
 keyToAction (KChar 'y') [] = Yell
 keyToAction _           _  = Idle
 
-gameUI :: IO ()
-gameUI = restartable "game.save" $ \initialGame -> do
+gameUI :: Game -> IO (Game, Ending)
+gameUI initialGame = do
     Session finalGame ending <- defaultMain myApp $ Session initialGame Quit
     return (finalGame, ending)
   where
