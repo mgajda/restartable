@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1f7badfdc15cd24b5f9e984b99603179b9be2efcad64141c9b89cfb746408f24
+-- hash: f647b685a5c916b94887984fc94a173fae4dd30ae6e3b6224bf73877af3fa53d
 
 name:           legio-decima
 version:        0.1.0.0
@@ -30,6 +30,7 @@ library
       Entity
       GameUI
       Initial
+      World
   other-modules:
       Paths_legio_decima
   hs-source-dirs:
@@ -46,6 +47,7 @@ library
     , optics
     , scientific
     , text
+    , unix
     , unordered-containers
     , vector
     , vty

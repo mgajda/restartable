@@ -38,6 +38,7 @@ library:
   - vector
   - bytestring
   - unordered-containers
+  - unix
 
 executables:
   legio-decima-exe:

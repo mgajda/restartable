@@ -11,27 +11,28 @@ import Brick
 import Brick.Widgets.Center                                                                                                                                               
 import Brick.Widgets.Border                                                                                                                                               
 import Brick.Widgets.Border.Style     
+import Control.Monad(when)
 import Linear.V2
 import Graphics.Vty.Input.Events ( Event(..), Key(..) )
 import Graphics.Vty.Attributes
 import Graphics.Vty.Image
 import GHC.Generics(Generic)
 import Optics
+import Optics.Getter
 import Optics.TH
+import System.Posix.Process(executeFile)
+import System.Environment(getArgs, getProgName)
+import Control.Monad.Reader
+import Brick
 
 import Initial
+import World
 
--- | Game world
-data World = World {
-    -- player :: Entity ()
-    _worldTime :: Int
-  } deriving (Eq, Show, Generic)
-makeLenses ''World
-
-instance FromJSON World where
-  parseJSON  = initially $ World 0
-instance ToJSON World
-instance Initial World
+-- | Restart current executable.
+restart = do
+  args    <- getArgs
+  exeName <- getProgName
+  executeFile exeName True args Nothing
 
 -- | Identifier of UI widget
 data WidgetName = Main
@@ -45,6 +46,16 @@ instance FromJSON Settings where
 instance ToJSON Settings
 instance Initial Settings
 
+-- | Way in which game terminated.
+data Ending = Quit
+            | Restart
+  deriving (Eq, Ord, Show, Generic)
+
+instance FromJSON Ending where
+  parseJSON = initially Quit
+instance ToJSON Ending
+instance Initial Ending
+
 -- | State of the game application
 data Game = Game {
       _world    :: World
@@ -57,6 +68,12 @@ instance FromJSON Game where
 instance ToJSON Game
 instance Initial Game
 
+data Session = Session {
+    _game   :: Game
+  , _ending :: Ending
+  } deriving (Eq, Show, Generic)
+makeLenses ''Session
+
 -- | Application specific event
 data GameEvt = GameEvt
   deriving (Eq, Ord, Show)
@@ -64,14 +81,17 @@ data GameEvt = GameEvt
 -- | My application state 
 type MyApp = App Game GameEvt WidgetName
 
+keyToAction (KChar ' ') [] = Wait
+keyToAction (KChar 'y') [] = Yell
+keyToAction _           _  = Idle
+
 gameUI :: IO ()
 gameUI = do
     let gameFile = "game.save"
     initialGame <- restore gameFile
-    -- TODO: autoload last game here
-    finalGame <- defaultMain myApp initialGame
-    encodeFile gameFile finalGame
-    -- TODO: autosave game here
+    finalSession <- defaultMain myApp $ Session initialGame Quit
+    encodeFile gameFile $ view game finalSession
+    when (view ending finalSession == Restart) restart
     return ()
   where
     myApp = App {
@@ -81,27 +101,33 @@ gameUI = do
         ,   appAttrMap
         ,   appStartEvent
         }
-    appHandleEvent  :: Game -> BrickEvent WidgetName GameEvt -> EventM WidgetName (Next Game)
-    appHandleEvent s (VtyEvent (EvResize _ _          )) = continue s
-    appHandleEvent s (VtyEvent (EvKey   (KChar '5') [])) = continue $ nextTick s 
-    appHandleEvent s (VtyEvent (EvKey   (KChar ' ') [])) = continue $ nextTick s
-    appHandleEvent s (VtyEvent (EvKey   (KChar 'q') [])) = halt s -- quit
-    appHandleEvent s (VtyEvent (EvKey   (KChar 'r') [])) = halt s -- reload, which quits for now
-    appHandleEvent s _                                   = continue s
+    appHandleEvent  :: Session -> BrickEvent WidgetName GameEvt -> EventM WidgetName (Next Session)
+    appHandleEvent s (VtyEvent (EvResize _ _            )) = continue s
+    appHandleEvent s (VtyEvent (EvKey   (KChar 'q') []  )) = halt s -- quit
+    appHandleEvent s (VtyEvent (EvKey   (KChar 'r') []  )) = halt $ set ending Restart s -- reload, which quits for now
+    appHandleEvent s (VtyEvent (EvKey   keyName     mods)) = continue
+                                                           $ over (game % world)
+                                                            (updateWorld $ keyToAction keyName mods)
+                                                             s
+    appHandleEvent s _                                     = continue s
     
-    nextTick = over (world % worldTime) (+1)
+    nextTick = over (game % world % worldTime) (+1) 
 
-    appDraw :: Game -> [Widget WidgetName]
-    appDraw game = [mainWidget]
+    appDraw :: Session -> [Widget WidgetName]
+    appDraw session = [mainWidget <=> messageWidget]
       where
         mainWidget = withBorderStyle unicode 
+                   $ joinBorders
                    $ borderWithLabel (str "Map")
-                   $ center $ str $ show $ view (world % worldTime) game
+                   $ center $ str $ show $ view (game % world % worldTime) session
+        messageWidget = withBorderStyle unicode
+                      $ joinBorders
+                      $ vLimit 3
+                      $ borderWithLabel (str "Message")
+                      $ str $ view (game % world % worldMessage) session
         
     appChooseCursor _ []    = Nothing
     appChooseCursor _ (c:_) = Just c
 
     appAttrMap _ = attrMap defAttr []
     appStartEvent = return
-
-
