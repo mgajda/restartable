@@ -8,5 +8,5 @@ main :: IO ()
 main = do
   args <- getArgs
   if null args
-    then restartable "game.save" GameUI.gameUI
-    else restartable (head args) GameUI.gameUI
+    then restartable "game.save" GameUI.vtyUI
+    else restartable (head args) GameUI.vtyUI

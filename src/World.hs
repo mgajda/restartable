@@ -12,12 +12,7 @@ module World( World
             ) where
 
 import Data.Aeson
-import Brick
-import Brick.Widgets.Center                                                                                                                                               
-import Brick.Widgets.Border                                                                                                                                               
-import Brick.Widgets.Border.Style     
 import Control.Monad(when)
-import Linear.V2
 import Graphics.Vty.Input.Events ( Event(..), Key(..) )
 import Graphics.Vty.Attributes
 import Graphics.Vty.Image

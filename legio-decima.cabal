@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 26356240c4315f1f60106b694ab779f58e1cbe43daf6d0ae9ef851870279fb57
+-- hash: 8a2399dd42dd958f40c45adb04775a03e861bbe3f95c06ac84609cfb18d1dc29
 
 name:           legio-decima
 version:        0.1.0.0
@@ -39,8 +39,6 @@ library
   build-depends:
       aeson
     , base >=4.7 && <5
-    , brick
-    , bson
     , bytestring
     , lens
     , linear

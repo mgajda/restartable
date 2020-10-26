@@ -26,12 +26,10 @@ library:
   source-dirs: src
   dependencies:
   - vty
-  - brick
   - lens # unused
   - optics # unused?
   - mtl
   - linear
-  - bson # unused?
   - aeson
   - scientific
   - text
