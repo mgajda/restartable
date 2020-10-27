@@ -10,4 +10,3 @@ main = do
   let saveFile | null args = "game.save"
                | otherwise = head args
   restartable saveFile GameUI.vtyUI
-  

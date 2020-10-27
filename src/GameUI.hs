@@ -8,6 +8,7 @@ module GameUI where
 
 import Data.Semigroup
 import Data.Aeson
+import Control.Monad(when)
 import Graphics.Vty
 import Graphics.Vty.Image(DisplayRegion)
 import Graphics.Vty.Input.Events ( Event(..), Key(..) )
@@ -16,6 +17,11 @@ import Graphics.Vty.Image
 import GHC.Generics(Generic)
 import Optics
 import Data.Text.Optics
+import Optics.Getter
+import Optics.TH
+import System.Posix.Process(executeFile)
+import System.Environment(getArgs, getProgName)
+import Control.Monad.Reader
 import Checkpoint
 import Linear.V2
 
