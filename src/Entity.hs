@@ -54,11 +54,11 @@ data Beast = Rabbit
 instance FromJSON Beast where
   parseJSON = initially Rabbit
 
-data PlayerData = PlayerData
+data PlayerData = PlayerData { _playerAge :: Int }
   deriving (Eq, Show, Generic, ToJSON, Initial)
 
 instance FromJSON PlayerData where
-  parseJSON = initially PlayerData
+  parseJSON = initially $ PlayerData 0
 
 type Avatar = Entity (Creature PlayerData)
 

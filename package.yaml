@@ -63,3 +63,6 @@ tests:
     - legio-decima
     - QuickCheck
     - quickcheck-classes
+    - less-arbitrary
+    - text
+    - vty

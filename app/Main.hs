@@ -7,6 +7,7 @@ import System.Environment(getArgs)
 main :: IO ()
 main = do
   args <- getArgs
-  if null args
-    then restartable "game.save" GameUI.vtyUI
-    else restartable (head args) GameUI.vtyUI
+  let saveFile | null args = "game.save"
+               | otherwise = head args
+  restartable saveFile GameUI.vtyUI
+  

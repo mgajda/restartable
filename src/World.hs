@@ -9,6 +9,7 @@ module World( World
             -- lenses
             , worldTime
             , worldMessage
+            , worldAvatar
             ) where
 
 import Data.Aeson
@@ -50,14 +51,19 @@ data Action =
   | Yell -- Yell around
   | Idle -- nothing happens
   | Move Dir
+  deriving (Eq, Ord, Show)
 
 nextTick :: World -> World
 nextTick = over worldTime (+1)
 
 updateWorld :: Action -> World -> World
-updateWorld Idle = id
-updateWorld Wait = nextTick
-                 . set worldMessage " "
-updateWorld Yell = nextTick
-                 . set worldMessage "Aaaargh!!!"
+updateWorld Idle          = id
+updateWorld Wait          = nextTick
+                          . set worldMessage " "
+updateWorld Yell          = nextTick
+                          . set worldMessage "Aaaargh!!!"
+updateWorld (Move dir)    = nextTick
+                          . over worldAvatar (moveEntity dir)
+-- DO NOT REMOVE: This is intentionally redundant pattern for debugging:
+updateWorld unknownAction = set worldMessage $ "Unknown action: " <> show unknownAction
 

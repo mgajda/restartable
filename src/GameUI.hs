@@ -1,9 +1,12 @@
-{-# LANGUAGE NamedFieldPuns  #-}
-{-# LANGUAGE DeriveGeneric   #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NamedFieldPuns       #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE RecordWildCards      #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances    #-}
 module GameUI where
 
+import Data.Semigroup
 import Data.Aeson
 import Graphics.Vty
 import Graphics.Vty.Image(DisplayRegion)
@@ -12,12 +15,15 @@ import Graphics.Vty.Attributes
 import Graphics.Vty.Image
 import GHC.Generics(Generic)
 import Optics
+import Data.Text.Optics
 import Checkpoint
+import Linear.V2
 
 import Initial
 import World
 import Position
 import Entity
+import Vty.View
 
 -- | Identifier of UI widget
 data WidgetName = Main
@@ -43,6 +49,7 @@ instance FromJSON Game where
 instance ToJSON Game
 instance Initial Game
 
+keyToAction (KChar 'y') [] = Yell
 keyToAction (KChar ' ') [] = Wait
 -- keypad directions
 keyToAction (KChar '7') [] = Move Northwest
@@ -53,66 +60,93 @@ keyToAction (KChar '5') [] = Wait
 keyToAction (KChar '6') [] = Move East
 keyToAction (KChar '1') [] = Move Southwest
 keyToAction (KChar '2') [] = Move South
-keyToAction (KChar '3') [] = Move Southwest
+keyToAction (KChar '3') [] = Move Southeast
+keyToAction  KUp        [] = Move North
+keyToAction  KDown      [] = Move South
+keyToAction  KLeft      [] = Move West
+keyToAction  KUpLeft    [] = Move Northwest
+keyToAction  KUpRight   [] = Move Northeast
+keyToAction  KDownRight [] = Move Southeast
+keyToAction  KDownLeft  [] = Move Southwest
+keyToAction  KRight     [] = Move East
 keyToAction _           _  = Idle
 
 -- | Start VTY UI over the game.
 vtyUI :: Game -> IO (Game, Ending)
 vtyUI initialState = do
-    cfg         <- standardIOConfig
-    vty         <- mkVty cfg
-    displaySize <- displayBounds $ outputIface vty
+    cfg                  <- standardIOConfig
+    vty                  <- mkVty cfg
+    displaySize          <- displayBounds $ outputIface vty
     (finalState, ending) <- vtyLoop vty displaySize initialState
     shutdown vty
     return (finalState, ending)
 
+-- TODO: should be a parameter
+savefile :: FilePath
+savefile  = "Game.save"
+
 vtyLoop :: Vty -> DisplayRegion -> Game -> IO (Game, Ending)
 vtyLoop vty displaySize state = do
-    viewModel vty displaySize state
-    e        <- nextEvent vty
-    uiAction <- eventUpdate state e
+    update vty $  display displaySize state
+    e         <- nextEvent vty
+    uiAction  <- eventUpdate state e
     case uiAction of
       UITerminate ending   -> return                   (state, ending)
-      UIContinue  newState -> vtyLoop vty  displaySize  newState
+      UIContinue  newState -> do
+        -- Store state to avoid loss of data due to errors 
+        encodeFile savefile newState -- FIXME: pass save file!
+        vtyLoop vty displaySize newState
       UIResize    newSize  -> vtyLoop vty  newSize      state
-  
+      UISnapshot           -> do
+        let snapshotFilename = savefile <> "." <> show (view (world % worldTime) state)
+        encodeFile snapshotFilename state
+        let newState = set (world % worldMessage)
+                           ("Saved snapshot as " <> snapshotFilename) state
+        vtyLoop    vty displaySize newState
+
 eventUpdate :: Monad m => Game -> Event -> m (UIAction Game)
 eventUpdate st (EvResize w h        ) = return $ UIResize    (w, h)
 eventUpdate st (EvKey  (KChar 'q') _) = return $ UITerminate Quit
 eventUpdate st (EvKey  (KChar 'r') _) = return $ UITerminate Restart
+eventUpdate st (EvKey  (KChar 's') _) = return   UISnapshot
 eventUpdate st (EvKey   keyName mods) = return $ UIContinue
                                       $ over  world
                                              (updateWorld $ keyToAction keyName mods) st
-eventUpdate st  _                     = return $ UIContinue          st -- ignore paste!
+eventUpdate st  _                     = return $ UIContinue st -- ignore paste!
 
+-- | Action of event loop:
+--   either terminate the process, resize window, or continue with a new state.
 data UIAction state =
     UIContinue  state
+  | UISnapshot
   | UIResize    DisplayRegion
   | UITerminate Ending
 
-viewModel :: Vty -> DisplayRegion -> Game -> IO ()
-viewModel vty displaySize model = do
-    let worldView   = string (defAttr ` withForeColor ` green)
-                    $ show $ view (world % worldTime)    model
-        messageView = string (defAttr ` withBackColor ` blue)
-                    $ hfill displaySize $ view (world % worldMessage) model
-        pic = picForLayers [bottom displaySize messageView, center displaySize worldView]
-    update vty pic
+-- | Cursor should be given by world only,
+instance Display Game where
+  display displaySize model = picForImage (bottom displaySize messageView)
+                           <> display displaySize (view world model)
+    where
+      messageView = text' (defAttr `withBackColor` blue)
+                  $ hfill displaySize $ view (world % worldMessage % packed) model
 
--- | Center the Vty.Image by translation
-center :: DisplayRegion -> Image -> Image
-center (w,h) img = translate xoff yoff img
-  where
-    xoff = (w-imageWidth  img) `div` 2
-    yoff = (h-imageHeight img) `div` 2
+instance Display World where
+  display displaySize world = display displaySize (view worldAvatar world)
+                           <> picForImage
+                             (center  displaySize worldView)
 
--- | Put the Vty.Image at the bottom by translation
-bottom :: DisplayRegion -> Image -> Image
-bottom (w, h) img = translate 0 yoff img
-  where
-    yoff = h-imageHeight img
+    where
+      worldView   = string (defAttr `withForeColor` black `withBackColor` blue)
+                  $ show $ view worldTime world
 
--- | Fill the displayed string with spaces.
-hfill :: DisplayRegion -> String -> String
-hfill (w, h) str = str <> replicate (w - safeWcswidth str) ' '
+instance Display Avatar where
+  display displaySize avatar = picForImage avatarStatus
+                            <> picForImage avatarIcon
+    where
+      avatarStatus = string (defAttr `withForeColor` yellow `withBackColor` cyan)
+                   $ show $ view entityPos avatar
+      avatarIcon = translatePos (view entityPos avatar)
+                 $ char (defAttr `withForeColor` yellow) '@'
 
+translatePos :: Pos -> Image -> Image
+translatePos (Pos (V2 x y)) = translate x y

@@ -33,6 +33,7 @@ data Dir = Northwest
          | South
          | Southwest
          | West
+  deriving (Eq, Ord, Show, Read, Generic)
 
 -- | Absolute directions in square world.
 directionVector          :: Dir -> Pos
