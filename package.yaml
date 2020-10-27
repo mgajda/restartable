@@ -26,7 +26,6 @@ library:
   source-dirs: src
   dependencies:
   - vty
-  - lens # unused
   - optics # unused?
   - mtl
   - linear
@@ -64,4 +63,3 @@ tests:
     - legio-decima
     - QuickCheck
     - quickcheck-classes
-

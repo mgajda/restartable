@@ -13,13 +13,6 @@ module Initial where
 
 import Control.Applicative((<|>))
 import Data.Aeson.Types
-import Data.Aeson
-    ( decodeFileStrict
-    , fromJSON
-    , parseJSON
-    , FromJSON
-    , Result(Success, Error)
-    , Value(Null) )
 import GHC.Generics ( Generic(Rep) )
 
 -- | Special class for values that should give initial value when JSON parse fails.
@@ -35,7 +28,8 @@ initial  = case fromJSON Null of
 
 -- | Implements FromJSON with a fixed initialization.
 --initializeWith :: (Generic a, GFromJSON Zero (Rep a)) => a -> Value -> Parser a
-initially :: (Generic a, GFromJSON Zero (Rep a)) => a -> Value -> Parser a
+initially    :: (Generic a, GFromJSON Zero (Rep a))
+             => a -> Value -> Parser a
 initially x v = genericParseJSON robustOptions v <|> pure x
 
 -- | JSON encoding options that are more robust to datatype migration.
@@ -45,4 +39,3 @@ robustOptions =
     omitNothingFields     = True
   , allNullaryToStringTag = False
   }
-

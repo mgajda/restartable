@@ -23,12 +23,15 @@ import System.Posix.Process(executeFile)
 import System.Environment(getArgs, getProgName)
 
 import Initial
+import Position
+import Entity
 
 -- | Game world
 data World = World {
     -- player :: Entity ()
-    _worldTime :: Int
+    _worldTime    :: Int
   , _worldMessage :: String
+  , _worldAvatar  :: Avatar --Avatar
   } deriving (Eq, Show, Generic)
 makeLenses ''World
 
@@ -37,7 +40,7 @@ data WorldTick = Tick
                | Instant
 
 instance FromJSON World where
-  parseJSON  = initially $ World 0 "Hello"
+  parseJSON  = initially $ World 0 "Hello" initial
 instance ToJSON World
 instance Initial World
 
@@ -46,6 +49,7 @@ data Action =
     Wait -- wait for one turn
   | Yell -- Yell around
   | Idle -- nothing happens
+  | Move Dir
 
 nextTick :: World -> World
 nextTick = over worldTime (+1)

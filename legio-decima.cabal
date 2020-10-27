@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 359919483a47921a352f037b459fd28aa815f3a6001586309356ca835c5c335b
+-- hash: 03f07e5e7990e5c9fa298504c22a18f21b2d9601c37ab07a62f9acf2fa11f0b4
 
 name:           legio-decima
 version:        0.1.0.0
@@ -31,6 +31,7 @@ library
       Entity
       GameUI
       Initial
+      Position
       World
   other-modules:
       Paths_legio_decima
@@ -40,7 +41,6 @@ library
       aeson
     , base >=4.7 && <5
     , bytestring
-    , lens
     , linear
     , mtl
     , optics

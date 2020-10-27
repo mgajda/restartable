@@ -16,6 +16,8 @@ import Checkpoint
 
 import Initial
 import World
+import Position
+import Entity
 
 -- | Identifier of UI widget
 data WidgetName = Main
@@ -42,9 +44,17 @@ instance ToJSON Game
 instance Initial Game
 
 keyToAction (KChar ' ') [] = Wait
-keyToAction (KChar 'y') [] = Yell
+-- keypad directions
+keyToAction (KChar '7') [] = Move Northwest
+keyToAction (KChar '8') [] = Move North
+keyToAction (KChar '9') [] = Move Northeast
+keyToAction (KChar '4') [] = Move West
+keyToAction (KChar '5') [] = Wait
+keyToAction (KChar '6') [] = Move East
+keyToAction (KChar '1') [] = Move Southwest
+keyToAction (KChar '2') [] = Move South
+keyToAction (KChar '3') [] = Move Southwest
 keyToAction _           _  = Idle
-
 
 -- | Start VTY UI over the game.
 vtyUI :: Game -> IO (Game, Ending)
