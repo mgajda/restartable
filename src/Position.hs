@@ -13,7 +13,16 @@ import Initial
 
 -- | World location
 newtype Pos = Pos { _pos :: V2 Int }
-  deriving (Eq, Ord, Show, Num, Read, Generic)
+  deriving (Eq, Ord, Num, Read, Generic)
+
+instance Show Pos where
+  show (Pos (V2 x y)) = showLL 'N' 'S' y <> ", " <> showLL 'W' 'E' x
+
+-- | Show a single longitude/latitude coordinate.
+showLL :: (Ord a, Num a, Show a) => Char -> Char -> a -> String
+showLL negChar posChar coord | coord <  0 = show coord <> ['°', negChar]
+showLL negChar posChar coord | coord >  0 = show coord <> ['°', posChar]
+showLL negChar posChar coord | coord == 0 = show coord <> ['°', ' '    ]
 
 -- | Note that we do not want generic instance for V2, since initial values may be different.
 instance FromJSON Pos where

@@ -149,8 +149,9 @@ instance Display Avatar where
   display displaySize avatar = picForImage avatarStatus
                             <> picForImage avatarIcon
     where
-      avatarStatus = string (defAttr `withForeColor` yellow `withBackColor` cyan)
-                   $ show $ view entityPos avatar
+      avatarStatus = right displaySize
+                   $ text' (defAttr `withForeColor` yellow `withBackColor` cyan)
+                   $ view (entityPos % to show % packed) avatar
       avatarIcon = translatePos (view entityPos avatar)
                  $ char (defAttr `withForeColor` yellow) '@'
 

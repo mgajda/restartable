@@ -54,6 +54,12 @@ bottom (w, h) img = translate 0 yoff img
 hfill :: DisplayRegion -> T.Text -> T.Text
 hfill (w, h) str = str <> T.replicate (w - safeWctwidth str) " "
 
+-- | Put the Vty.Image at the right edge by translation
+right :: DisplayRegion -> Image -> Image
+right (w, h) img = translate xoff 0 img
+  where
+    xoff = w - imageWidth img
+
 stripUnprintableTrailer :: T.Text -> T.Text
 stripUnprintableTrailer = T.dropWhileEnd (not . isPrint)
 
