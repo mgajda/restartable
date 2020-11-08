@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric   #-}
+{-# LANGUAGE DeriveGeneric #-}
 -- | Make a checkpointable session
 --   provided that session state implements `Initial`.
 module Checkpoint(restartable, Ending(..)) where
@@ -21,8 +21,9 @@ restore filepath = do
     Just  x -> return x
 -- | Way in which game terminated.
 
-data Ending = Quit
-            | Restart
+data Ending = Quit     -- exit application
+            | Restart  -- save state, and resume with a new executable on the same path
+            | Continue -- save state, and resume execution
   deriving (Eq, Ord, Show, Generic)
 
 -- | Restart current executable with the same arguments.
@@ -39,10 +40,17 @@ restartable ::  Initial  a
             -> (a -> IO (a, Ending))
             ->       IO  ()
 restartable savefile app = do
-  initialState <- restore savefile
-  (finalState, ending) <- app initialState
-  encodeFile savefile finalState
-  -- Reload code (after recompile).
-  when (ending == Restart) restartExecutable
-
+    initialState <- restore savefile
+    go initialState
+  where
+    go initialState = do
+      (finalState, ending) <- app initialState
+      encodeFile savefile finalState
+      case ending of
+        -- Reload code (after recompile).
+        Restart  -> restartExecutable
+        -- Resume execution after saving the state
+        Continue -> go finalState
+        -- Exit application
+        Quit     -> return ()    
 
