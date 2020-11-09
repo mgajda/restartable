@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 -- | Make a checkpointable session
 --   provided that session state implements `Initial`.
-module Checkpoint(restartable, Ending(..)) where
+module Control.Restartable.Checkpoint(restartable, Ending(..)) where
 
 import Data.Aeson
 import GHC.Generics(Generic)
@@ -10,7 +10,7 @@ import System.Environment(getArgs, getProgName)
 import System.IO.Error
 import Control.Monad(when)
 
-import Initial
+import Control.Restartable.Initial
 
 -- | Reload old value from file, or initialize it from scratch if file is not present.
 restore :: Initial a => FilePath -> IO a

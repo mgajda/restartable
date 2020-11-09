@@ -1,23 +1,30 @@
-name:                legio-decima
+name:                restartable
 version:             0.1.0.0
-github:              "mjgajda/legio-decima"
+github:              "mjgajda/restartable"
 license:             BSD3
 author:              "Michał J. Gajda"
 maintainer:          "mjgajda@migamake.com"
-copyright:           "AllRightsReserved"
+copyright:           "'2020"
 
 extra-source-files:
 - README.md
 - ChangeLog.md
 
-# Metadata used when publishing your package
-# synopsis:            Short description of your package
-# category:            Data
+synopsis: Minimal live coding library for model-view-event-update applications.
+description: |
+  Minimal live coding library.
+  It can store model of the model-view-event-update applications.
+  It uses `FromJSON` and `ToJSON` with default value
+  for absent data elements, and `Generic` parser otherwise:
+  > import Initially(initially, Initial)
+  > data MyModel = Model { timestamp :: UTCTime }
+  > instance FromJSON MyModel where
+  >   parseJSON = initially myDefaultValue
+  > instance Initial MyModel
+  > 
+  > main = restartable 
 
-# To avoid duplicated efforts in documentation and dealing with the
-# complications of embedding Haddock markup inside cabal files, it is
-# common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/mjgajda/legio-decima#readme>
+  Please see the README on GitHub at <https://github.com/mjgajda/restartable#readme>
 
 dependencies:
 - base >= 4.7 && < 5
@@ -25,7 +32,6 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
-  - vty
   - optics # unused?
   - mtl
   - linear
@@ -37,32 +43,3 @@ library:
   - unordered-containers
   - unix
 
-executables:
-  legio-decima:
-    main:                Main.hs
-    source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - legio-decima
-    - vty
-
-
-tests:
-  legio-decima-test:
-    main:                Spec.hs
-    source-dirs:         test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - aeson
-    - legio-decima
-    - QuickCheck
-    - quickcheck-classes
-    - less-arbitrary
-    - text
-    - vty

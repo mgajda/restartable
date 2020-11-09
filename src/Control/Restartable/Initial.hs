@@ -5,8 +5,7 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE PartialTypeSignatures #-} -- Development only!
-module Initial where
-
+module Control.Restartable.Initial where
 -- ^ This module describes values that
 --   are initialized from a list of _all optional_ Aeson.Values.
 --   Initialization should be fully generic by default.
