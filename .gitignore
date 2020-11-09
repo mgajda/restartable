@@ -1,3 +1,6 @@
 .stack-work/
 .vscode/
 *~
+.ghc.environment.*
+dist
+dist-newstyle
