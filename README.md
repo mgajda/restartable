@@ -18,7 +18,7 @@ instance Initial MyModel
 
 Then in the main module use:
 
-```
+```haskell
 import Control.Restartable.Checkpoint(restartable, Ending(..))
 
 main = restartable "checkpoint.save" myMain
