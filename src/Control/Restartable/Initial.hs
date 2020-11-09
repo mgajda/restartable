@@ -1,8 +1,8 @@
 {-# LANGUAGE FlexibleContexts      #-}
-module Control.Restartable.Initial where
--- ^ This module describes values that
+-- | This module describes values that
 --   are initialized from a list of _all optional_ Aeson.Values.
 --   Initialization should be fully generic by default.
+module Control.Restartable.Initial where
 
 import Control.Applicative((<|>))
 import Data.Aeson.Types

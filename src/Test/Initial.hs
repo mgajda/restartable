@@ -1,9 +1,8 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
-module Test.Initial where
-
--- ^ This module describes values that
+-- | This module describes values that
 --   are initialized from a list of _all optional_ Aeson.Values.
 --   Initialization should be fully generic by default.
+module Test.Initial where
 
 import Data.Aeson ( fromJSON, Result(Success), Value )
 import Data.Proxy ( Proxy(..) )
