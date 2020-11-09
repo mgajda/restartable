@@ -3,12 +3,11 @@
 --   provided that session state implements `Initial`.
 module Control.Restartable.Checkpoint(restartable, Ending(..)) where
 
-import Data.Aeson
+import Data.Aeson ( decodeFileStrict, encodeFile )
 import GHC.Generics(Generic)
 import System.Posix.Process(executeFile)
 import System.Environment(getArgs, getProgName)
-import System.IO.Error
-import Control.Monad(when)
+import System.IO.Error ( catchIOError )
 
 import Control.Restartable.Initial
 

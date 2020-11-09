@@ -1,10 +1,4 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE UndecidableInstances  #-}
-{-# LANGUAGE PartialTypeSignatures #-} -- Development only!
 module Control.Restartable.Initial where
 -- ^ This module describes values that
 --   are initialized from a list of _all optional_ Aeson.Values.
@@ -22,7 +16,7 @@ class (FromJSON a
 -- | Initial value
 initial :: Initial a => a
 initial  = case fromJSON Null of
-  Error err -> error "Failed to initialize from empty JSON!"
+  Error   _ -> error "Failed to initialize from empty JSON!"
   Success a -> a
 
 -- | Implements FromJSON with a fixed initialization.
