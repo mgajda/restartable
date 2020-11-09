@@ -6,14 +6,24 @@ It uses `FromJSON` and `ToJSON` with default value
 for absent data elements, and `Generic` parser otherwise:
 
 ```haskell
-import Initially(initially, Initial)
+import Control.Restartable.Initially(initially, Initial)
+
 data MyModel = Model { timestamp :: UTCTime }
+
 instance ToJSON MyModel where
 instance FromJSON MyModel where
   parseJSON = initially myDefaultValue
 instance Initial MyModel
+```
 
-main = restartable
+Then in the main module use:
+
+```
+import Control.Restartable.Checkpoint(restartable, Ending(..))
+
+main = restartable "checkpoint.save" myMain
+
+myMain :: MyModel -> IO (MyModel, Ending)
 ```
 
 It is preferred to attach initial value to every substructure,
