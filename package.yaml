@@ -5,6 +5,7 @@ license:             BSD3
 author:              "Michał J. Gajda"
 maintainer:          "mjgajda@migamake.com"
 copyright:           "'2020"
+category:            Control
 
 extra-source-files:
 - README.md
